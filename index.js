@@ -1,10 +1,13 @@
 const http = require('http');
-
+const fs = require('fs');
+let articles = require('./articles.json');
 const hostname = '127.0.0.1';
 const port = 3005;
 const handlers = {
     '/sum': sum,
-    '/mult': mult
+    '/mult': mult,
+    '/api/articles/readall': readAll,
+    '/api/articles/read': read
 };
 
 const server = http.createServer((req, res) => {
@@ -39,6 +42,14 @@ function mult(req,res,payload,cb) {
     const result = { c: payload.a * payload.b };
     cb(null, result);
 }
+
+function readAll(req,res,payload,cb) {
+    cb(null, articles);
+}
+function read(req,res,payload,cb) {
+    let result = articles.find(x=> x.id === payload.id);
+    cb(null, result);
+}
 function notFound(req,res,payload,cb) {
     cb({code: 404, message:'Not Found'});
 }
@@ -48,7 +59,13 @@ function parseBodyJson(req, cd) {
        body.push(chunk);
     }).on('end',function () {
         body = Buffer.concat(body).toString();
-        let params = JSON.parse(body);
-        cd(null,params);
+        if( body.length !== 0) {
+            let params = JSON.parse(body);
+            cd(null,params);
+        }
+        else {
+            let params = null;
+            cd(null,params);
+        }
     });
 }
