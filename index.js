@@ -7,7 +7,9 @@ const handlers = {
     '/sum': sum,
     '/mult': mult,
     '/api/articles/readall': readAll,
-    '/api/articles/read': read
+    '/api/articles/read': read,
+    '/api/articles/create': create,
+    '/api/articles/update': update
 };
 
 const server = http.createServer((req, res) => {
@@ -49,6 +51,26 @@ function readAll(req,res,payload,cb) {
 function read(req,res,payload,cb) {
     let result = articles.find(x=> x.id === payload.id);
     cb(null, result);
+}
+function create (req,res,payload,cb) {
+    payload.id = Date.now();
+    payload.comments = [];
+    articles.push(payload);
+    updateArticles();
+    cb(null, payload);
+}
+function update(req,res,payload,cb) {
+    for(let i = 0; i < articles.length; i++){
+        if(articles[i].id === payload.id)
+            Object.assign(articles[i],payload);
+    }
+    updateArticles();
+    cb(null,{"message": "Article is update"});
+}
+function updateArticles() {
+    fs.writeFile('articles.json',JSON.stringify(articles,null,'\n\t'), function (err) {
+        if(err) console.log(err);
+    });
 }
 function notFound(req,res,payload,cb) {
     cb({code: 404, message:'Not Found'});
